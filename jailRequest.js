@@ -28,7 +28,7 @@ module.exports = {
             data: {
                 id: idUser,
                 rolesId: Array.from(roles),
-                guild: guildId,
+                guild: guildId
             }
         });
     },

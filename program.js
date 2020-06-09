@@ -1,7 +1,8 @@
 require('dotenv').config();
 const Discord = require('discord.js');
 const bot = new Discord.Client({
-    autoReconnect: true
+    autoReconnect: true,
+    fetchAllMembers: true,
 });
 const MuteRequest = require('./muteRequest.js');
 const JailRequest = require('./jailRequest.js');
@@ -15,20 +16,25 @@ const msgHelp = "``` 3 commandes sont disponibles \n- " + prefix + "add <nom cha
 const msgErrorCommande = "La commande n'a pas été reconnue";
 
 bot.on('ready', function () {
-    console.log("Start Config...");
+    console.log("Start 2 Config...");
     bot.guilds.cache.forEach(guild => {
         checkMutedRole(guild);
-        configChannels(guild);
     });
     setInterval(checkTempMute, 60000); // 60 000 ms = 1 sec
     console.log("La Boule ready");
 })
 
 bot.on('message', msg => {
-    if (msg.guild === null || !msg.member.hasPermission("MUTE_MEMBERS")) {
+    if (msg.guild === null || msg.author.bot) {
         return;
     }
-
+    let member = msg.member;
+    if (member === undefined || member === null) {
+        console.log("member null " + msg.author.username + '\n' + msg.guild.me.hasPermission(msg.channel));
+        console.log(msg.guild.members.cache.find(m => m.user.id === msg.author.id));
+    }
+    if (!member.hasPermission("MUTE_MEMBERS"))
+        return;
     processMsg(msg.content).then(parsedMsg => {
 
         var memberFocused = msg.mentions.members.first();
@@ -254,12 +260,6 @@ function checkMutedRole(guild) {
             })
             .catch(console.error);
     }
-}
-
-function configChannels(guild) {
-    guild.channels.cache.array().every(channel => channel.updateOverwrite(guild.roles.everyone, {
-        SEND_MESSAGES: false
-    }));
 }
 
 function jailReply(msg, member, title) {
